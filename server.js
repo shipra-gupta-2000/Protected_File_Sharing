@@ -34,7 +34,6 @@ app.post('/upload',upload.single('file'),async(req,res)=>{
         newName:req.file.filename,
         password: await bcrypt.hash(req.body.password,10)
     }
-    console.log(newFile.password)
     const temp=new file(newFile);
     temp.save().then(()=>console.log("file uploaded"));
     res.render("index", { fileLink: `${req.headers.origin}/file/${temp.id}` })
@@ -43,24 +42,19 @@ app.post('/upload',upload.single('file'),async(req,res)=>{
 
 app.route('/file/:id').get(handleDownload).post(handleDownload)
 async function handleDownload(req,res){
-    console.log("reached inside handleDownload")
     const temp = await file.findById(req.params.id)
-    console.log(req.body.password);
     if(temp.password != null)
     {
         if(req.body.password == null){
             res.render("password");
-            console.log("1");
             return ;
         }
         if(!(await(bcrypt.compare(req.body.password,temp.password))))
         {
             res.render("password",{error:true});
-            console.log("2");
             return 
         }
     }
-    console.log("3");
     temp.download++;
     await temp.save();
     res.download(temp.path,temp.originalName);
